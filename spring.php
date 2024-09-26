@@ -12,7 +12,7 @@ class SpringCourier
      *  to create the new shipment (API key, service...)
      * 
      * @return array Associative array containing the data returned 
-     * from the API or connection error
+     * from the API or a connection error
      */
     public function newPackage(array $order, array $params): array
     {
@@ -33,16 +33,42 @@ class SpringCourier
         if ($response["ErrorLevel"] != 0) {
             return [
                 "error" => true,
-                "message" => "Error creating shipment: {$response['Error']}"
+                "message" => "Error creating shipment: {$response["Error"]}"
             ];
         }
 
         return $response;
     }
 
-    public function packagePDF(string $trackingNumber)
+    /**
+     * Get a shipping label
+     * 
+     * @param string $trackingNumber Shipping tracking number created by the newPackage function
+     * 
+     * @return array Associative array containing the data returned
+     * from the API or a connection error
+     */
+    public function packagePDF(string $trackingNumber): array
     {
-        echo __FUNCTION__;
+        $data = [
+            "Apikey" => "f16753b55cac6c6e",
+            "Command" => "GetShipmentLabel",
+            "Shipment" => [
+                "LabelFormat" => "PDF",
+                "TrackingNumber" => $trackingNumber
+            ]
+        ];
+
+        $response = $this->curlExec($data);
+
+        if ($response["ErrorLevel"] != 0) {
+            return [
+                "error" => true,
+                "message" => "Error getting label: {$response["Error"]}"
+            ];
+        }
+
+        return $response;
     }
 
     /**

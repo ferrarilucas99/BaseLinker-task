@@ -41,9 +41,15 @@ $newPackage = $springCourier->newPackage($order, $params);
 
 if (isset($newPackage["error"]) && $newPackage["error"]) {
     echo $newPackage["message"];
-} else {
-    echo "Tracking Number: " . $newPackage["Shipment"]["TrackingNumber"];
-}
+} 
 
-echo "<br>";
-$springCourier->packagePDF("");
+if (isset($newPackage["Shipment"]["TrackingNumber"]) && is_string($newPackage["Shipment"]["TrackingNumber"])) {
+    $packagePDF = $springCourier->packagePDF($newPackage["Shipment"]["TrackingNumber"]);
+
+    if (isset($packagePDF["error"]) && $packagePDF["error"]) {
+        echo "Error: {$packagePDF["message"]}";
+    } else {
+        header("Content-type: application/pdf");
+        echo base64_decode($packagePDF["Shipment"]["LabelImage"]);
+    }
+}
