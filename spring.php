@@ -37,7 +37,17 @@ class SpringCourier
             ];
         }
 
-        return $response;
+        if (empty($response["Shipment"]["TrackingNumber"])) {
+            return [
+                "error" => true,
+                "message" => "Missing tracking number from response"
+            ];
+        }
+
+        return [
+            "success" => true,
+            "trackingNumber" => $response["Shipment"]["TrackingNumber"]
+        ];
     }
 
     /**
