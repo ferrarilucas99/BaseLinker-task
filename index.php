@@ -10,6 +10,7 @@ $error = $_SESSION["flash"]["error"] ?? false;
 $message = $_SESSION["flash"]["message"] ?? "";
 $trackingNumber = $_SESSION["flash"]["trackingNumber"] ?? "";
 $labelImage = $_SESSION["flash"]["labelImage"] ?? "";
+$hasLabelImage = !empty($_SESSION["flash"]["labelImage"]);
 
 unset($_SESSION["flash"]);
 
@@ -224,31 +225,68 @@ function getLabel(): void
             <button type="submit" class="btn btn-primary">Create Shipment</button>
         </form>
     
-        <div class="d-flex row">
-            <div class="col-12 col-md-4">
-                <form action="/?action=get-label" method="POST" class="mb-3">
+        <form action="/?action=get-label" method="POST" class="mb-3">
+            <div class="d-flex row">
+                <div class="col-12 col-md-4">
                     <div class="mb-2">
                         <label for="tracking-number">Tracking Number <span class="required">*</span></label>
                         <input type="text" id="tracking-number" name="trackingNumber" placeholder="Enter tracking number" value="<?= htmlspecialchars($trackingNumber) ?>" class="form-control form-control-sm" >
                     </div>
                     
                     <button type="submit" class="btn btn-primary">Download Label</button>
-                </form>
-        
-                <small class="mb-3">Fields with <span class="required">*</span> are required</small>
+                </div>
             </div>
+        </form>
         
-            <div class="col-12 col-md-8">
-                <?php if ($labelImage): ?>
-                    <iframe 
-                        src="data:application/pdf;base64,<?= $labelImage ?>" 
-                        width="100%" 
-                        height="650"
-                    >
+        <small class="mb-3">Fields with <span class="required">*</span> are required</small>
+    </main>
+
+    <div class="modal" id="myModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Shipment label preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <?php if ($labelImage): ?>
+                        <iframe 
+                            src="data:application/pdf;base64,<?= $labelImage ?>" 
+                            width="100%" 
+                            height="650"
+                        >
                     </iframe>
                 <?php endif; ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
-    </main>
+    </div>
+
+    <a href="#" id="downloadLabel" class="d-none" download="label.pdf"></a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        const myModal = document.getElementById("myModal");
+        const modal = new bootstrap.Modal(myModal);
+        const downloadLink = document.getElementById('downloadLabel');
+        const labelImage = <?= json_encode($labelImage) ?>;
+        const hasLabelImage = <?= json_encode($hasLabelImage) ?>;
+
+        if (hasLabelImage && labelImage) {
+            modal.show();
+
+            const pdfBlob = new Blob([new Uint8Array(atob(labelImage).split("").map(char => char.charCodeAt(0)))], { type: 'application/pdf' });
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+
+            downloadLink.href = pdfUrl;
+            downloadLink.click();
+
+            URL.revokeObjectURL(pdfUrl);
+        }
+    </script>
 </body>
 </html>
