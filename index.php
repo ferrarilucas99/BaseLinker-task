@@ -74,7 +74,7 @@ function getLabel(): void
 {
     $springCourier = new SpringCourier();
 
-    $packagePDF = $springCourier->packagePDF($_POST["trackingNumber"]);
+    $packagePDF = $springCourier->packagePDF($_POST["trackingNumber"], $_POST["apikey"]);
 
     if (!empty($packagePDF["error"])) {
         $_SESSION["flash"] = [
@@ -116,6 +116,13 @@ function getLabel(): void
     <h1 class="text-center">Shipment Manager</h1>
 
     <main class="container">
+        <div class="alert alert-warning">
+            <ul class="m-0">
+                <li>The form contains default values, but it is possible to change them for tests.</li>
+                <li>Some fields are required</li>
+            </ul>
+        </div>
+
         <?php if($success && $message): ?>
             <div class="alert alert-success">
                 <?= htmlspecialchars($message) ?>
@@ -132,11 +139,11 @@ function getLabel(): void
             <div class="mb-2 d-flex row">
                 <div class="col-12 col-sm-6 col-md-3 mb-2">
                     <label for="apikey">API Key <span class="required">*</span></label>
-                    <input type="text" name="params[apikey]" id="apikey" class="form-control form-control-sm" value="f16753b55cac6c6e">
+                    <input type="text" name="params[apikey]" id="apikey" class="form-control form-control-sm" value="f16753b55cac6c6e" required>
                 </div>
                 <div class="col-12 col-sm-6 col-md-3 mb-2">
                     <label for="shipperReference">Shipper Reference <span class="required">*</span></label>
-                    <input type="text" name="params[shipperReference]" id="shipperReference" class="form-control form-control-sm" value="<?= htmlspecialchars($randomRef) ?>">
+                    <input type="text" name="params[shipperReference]" id="shipperReference" class="form-control form-control-sm" value="<?= htmlspecialchars($randomRef) ?>" required>
                 </div>
             </div>
 
@@ -145,39 +152,39 @@ function getLabel(): void
             <div class="mb-2 d-flex row">
                 <div class="col-12 col-md-4 col-xl-3 mb-2">
                     <label for="sender-name">Sender's Name</label>
-                    <input type="text" name="sender[Name]" id="sender-name" class="form-control form-control-sm" value="Jan Kowalski">
+                    <input type="text" name="sender[Name]" id="sender-name" class="form-control form-control-sm" value="Jan Kowalski" maxlength="100">
                 </div>
                 <div class="col-12 col-md-4 col-xl-3 mb-2">
                     <label for="sender-company">Sender's Company</label>
-                    <input type="text" name="sender[Company]" id="sender-company" class="form-control form-control-sm" value="BaseLinker">
+                    <input type="text" name="sender[Company]" id="sender-company" class="form-control form-control-sm" value="BaseLinker" maxlength="50">
                 </div>
                 <div class="col-12 col-md-4 col-xl-3 mb-2">
                     <label for="sender-address">Sender's Address</label>
-                    <input type="text" name="sender[AddressLine1]" id="sender-address" class="form-control form-control-sm" value="Kopernika 10">
+                    <input type="text" name="sender[AddressLine1]" id="sender-address" class="form-control form-control-sm" value="Kopernika 10" maxlength="50">
                 </div>
                 <div class="col-12 col-md-4 col-xl-3 mb-2">
                     <label for="sender-city">Sender's City</label>
-                    <input type="text" name="sender[City]" id="sender-city" class="form-control form-control-sm" value="Gdansk">
+                    <input type="text" name="sender[City]" id="sender-city" class="form-control form-control-sm" value="Gdansk" maxlength="50">
                 </div>
                 <div class="col-12 col-md-4 col-xl-2 mb-2">
                     <label for="sender-state">Sender's State</label>
-                    <input type="text" name="sender[State]" id="sender-state" class="form-control form-control-sm" value="">
+                    <input type="text" name="sender[State]" id="sender-state" class="form-control form-control-sm" value="" maxlength="3">
                 </div>
                 <div class="col-12 col-md-4 col-xl-2 mb-2">
                     <label for="sender-zip">Sender's Zip Code <span class="required">*</span></label>
-                    <input type="text" name="sender[Zip]" id="sender-zip" class="form-control form-control-sm" value="80208">
+                    <input type="text" name="sender[Zip]" id="sender-zip" class="form-control form-control-sm zipInput" value="80208" required maxlength="15">
                 </div>
                 <div class="col-12 col-md-4 col-xl-2 mb-2">
                     <label for="sender-country">Sender's Country</label>
-                    <input type="text" name="sender[Country]" id="sender-country" class="form-control form-control-sm" value="PL">
+                    <input type="text" name="sender[Country]" id="sender-country" class="form-control form-control-sm" value="PL" maxlength="2">
                 </div>
                 <div class="col-12 col-md-4 col-xl-3 mb-2">
                     <label for="sender-phone">Sender's Phone</label>
-                    <input type="text" name="sender[Phone]" id="sender-phone" class="form-control form-control-sm" value="666666666">
+                    <input type="text" name="sender[Phone]" id="sender-phone" class="form-control form-control-sm phoneInput" value="666666666" maxlength="20">
                 </div>
                 <div class="col-12 col-md-4 col-xl-3 mb-2">
                     <label for="sender-email">Sender's Email</label>
-                    <input type="text" name="sender[Email]" id="sender-email" class="form-control form-control-sm" value="jankowalski@test.com">
+                    <input type="text" name="sender[Email]" id="sender-email" class="form-control form-control-sm" value="jankowalski@test.com" maxlength="100">
                 </div>
             </div>
 
@@ -186,39 +193,39 @@ function getLabel(): void
             <div class="mb-2 d-flex row">
                 <div class="col-12 col-md-4 col-xl-3 mb-2">
                     <label for="recipient-name">Recipient's Name <span class="required">*</span></label>
-                    <input type="text" name="recipient[Name]" id="recipient-name" class="form-control form-control-sm" value="Maud Driant">
+                    <input type="text" name="recipient[Name]" id="recipient-name" class="form-control form-control-sm" value="Maud Driant" required maxlength="100">
                 </div>
                 <div class="col-12 col-md-4 col-xl-3 mb-2">
                     <label for="recipient-company">Recipient's Company</label>
-                    <input type="text" name="recipient[Company]" id="recipient-company" class="form-control form-control-sm" value="Spring GDS">
+                    <input type="text" name="recipient[Company]" id="recipient-company" class="form-control form-control-sm" value="Spring GDS" maxlength="50">
                 </div>
                 <div class="col-12 col-md-4 col-xl-3 mb-2">
                     <label for="recipient-address">Recipient's Address <span class="required">*</span></label>
-                    <input type="text" name="recipient[AddressLine1]" id="recipient-address" class="form-control form-control-sm" value="Strada Foisorului, Nr. 16, Bl. F11C, Sc. 1, Ap. 10">
+                    <input type="text" name="recipient[AddressLine1]" id="recipient-address" class="form-control form-control-sm" value="Strada Foisorului, Nr. 16, Bl. F11C, Sc. 1, Ap. 10" required maxlength="50">
                 </div>
                 <div class="col-12 col-md-4 col-xl-3 mb-2">
                     <label for="recipient-city">Recipient's City <span class="required">*</span></label>
-                    <input type="text" name="recipient[City]" id="recipient-city" class="form-control form-control-sm" value="Bucuresti, Sector 3">
+                    <input type="text" name="recipient[City]" id="recipient-city" class="form-control form-control-sm" value="Bucuresti, Sector 3" required maxlength="50">
                 </div>
                 <div class="col-12 col-md-4 col-xl-2 mb-2">
                     <label for="recipient-state">Recipient's State</label>
-                    <input type="text" name="recipient[State]" id="recipient-state" class="form-control form-control-sm" value="">
+                    <input type="text" name="recipient[State]" id="recipient-state" class="form-control form-control-sm" value="" maxlength="3">
                 </div>
                 <div class="col-12 col-md-4 col-xl-2 mb-2">
                     <label for="recipient-zip">Recipient's Zip Code <span class="required">*</span></label>
-                    <input type="text" name="recipient[Zip]" id="recipient-zip" class="form-control form-control-sm" value="031179">
+                    <input type="text" name="recipient[Zip]" id="recipient-zip" class="form-control form-control-sm zipInput" value="031179" required maxlength="15">
                 </div>
                 <div class="col-12 col-md-4 col-xl-2 mb-2">
                     <label for="recipient-country">Recipient's Country <span class="required">*</span></label>
-                    <input type="text" name="recipient[Country]" id="recipient-country" class="form-control form-control-sm" value="RO">
+                    <input type="text" name="recipient[Country]" id="recipient-country" class="form-control form-control-sm" value="RO" required maxlength="2">
                 </div>
                 <div class="col-12 col-md-4 col-xl-3 mb-2">
                     <label for="recipient-phone">Recipient's Phone</label>
-                    <input type="text" name="recipient[Phone]" id="recipient-phone" class="form-control form-control-sm" value="555555555">
+                    <input type="text" name="recipient[Phone]" id="recipient-phone" class="form-control form-control-sm phoneInput" value="555555555" maxlength="20">
                 </div>
                 <div class="col-12 col-md-4 col-xl-3 mb-2">
                     <label for="recipient-email">Recipient's Email</label>
-                    <input type="text" name="recipient[Email]" id="recipient-email" class="form-control form-control-sm" value="mauddriant@test.com">
+                    <input type="text" name="recipient[Email]" id="recipient-email" class="form-control form-control-sm" value="mauddriant@test.com" maxlength="100">
                 </div>
             </div>
     
@@ -227,15 +234,16 @@ function getLabel(): void
     
         <form action="/?action=get-label" method="POST" class="mb-3">
             <div class="d-flex row">
-                <div class="col-12 col-md-4">
-                    <div class="mb-2">
-                        <label for="tracking-number">Tracking Number <span class="required">*</span></label>
-                        <input type="text" id="tracking-number" name="trackingNumber" placeholder="Enter tracking number" value="<?= htmlspecialchars($trackingNumber) ?>" class="form-control form-control-sm" >
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">Download Label</button>
+                <div class="col-12 col-sm-6 col-md-3 mb-2">
+                    <label for="tracking-number">Tracking Number <span class="required">*</span></label>
+                    <input type="text" id="tracking-number" name="trackingNumber" placeholder="Enter tracking number" value="<?= htmlspecialchars($trackingNumber) ?>" class="form-control form-control-sm" required>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3 mb-2">
+                    <label for="apikeyGetLabel">API Key <span class="required">*</span></label>
+                    <input type="text" name="apikey" id="apikeyGetLabel" class="form-control form-control-sm" value="f16753b55cac6c6e" required>
                 </div>
             </div>
+            <button type="submit" class="btn btn-primary">Download Label</button>
         </form>
         
         <small class="mb-3">Fields with <span class="required">*</span> are required</small>
@@ -251,7 +259,7 @@ function getLabel(): void
                 <div class="modal-body">
                     <?php if ($labelImage): ?>
                         <iframe 
-                            src="data:application/pdf;base64,<?= $labelImage ?>" 
+                            src="data:application/pdf;base64,<?= htmlspecialchars($labelImage) ?>" 
                             width="100%" 
                             height="650"
                         >
@@ -287,6 +295,16 @@ function getLabel(): void
 
             URL.revokeObjectURL(pdfUrl);
         }
+
+        const inputs = document.querySelectorAll(".zipInput, .phoneInput");
+
+        inputs.forEach(input => {
+            var pattern = input.classList.contains("phoneInput") ? /[^+\d]/g : /[^\d]/g;
+
+            input.addEventListener("input", function() {
+                this.value = this.value.replace(pattern, "");
+            });
+        });
     </script>
 </body>
 </html>

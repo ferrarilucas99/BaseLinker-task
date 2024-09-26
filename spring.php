@@ -58,10 +58,10 @@ class SpringCourier
      * @return array Associative array containing the data returned
      * from the API or a connection error
      */
-    public function packagePDF(string $trackingNumber): array
+    public function packagePDF(string $trackingNumber, string $apiKey = "f16753b55cac6c6e"): array
     {
         $data = [
-            "Apikey" => "f16753b55cac6c6e",
+            "Apikey" => $apiKey,
             "Command" => "GetShipmentLabel",
             "Shipment" => [
                 "LabelFormat" => "PDF",
