@@ -2,54 +2,96 @@
 
 require_once "./spring.php";
 
-$springCourier = new SpringCourier();
-$randomRef = "Ref_" . bin2hex(random_bytes(8/2));
+session_start();
 
-$success = false;
-$error = false;
-$message = "";
-$trackingNumber = "";
-$labelImage = "";
+$randomRef = "Ref_" . bin2hex(random_bytes(8/2));
+$success = $_SESSION["flash"]["success"] ?? false;
+$error = $_SESSION["flash"]["error"] ?? false;
+$message = $_SESSION["flash"]["message"] ?? "";
+$trackingNumber = $_SESSION["flash"]["trackingNumber"] ?? "";
+$labelImage = $_SESSION["flash"]["labelImage"] ?? "";
+
+unset($_SESSION["flash"]);
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_REQUEST["action"])) {
-    if ($_REQUEST["action"] === "create-shipment") {
-        $order = [
-            "sender" => $_POST["sender"],
-            "recipient" => $_POST["recipient"]
-        ];
-        
-        $params = [
-            "apiKey" => $_POST["params"]["apikey"],
-            "labelFormat" => "PDF",
-            "service" => "PPTT",
-            "shipperReference" => $_POST["params"]["shipperReference"]
-        ];
-
-        $newPackage = $springCourier->newPackage($order, $params);
-
-        if (!empty($newPackage["error"])) {
-            $error = true;
-            $message = $newPackage["message"];
-        } else {
-            $success = true;
-            $message = "New shipment created successfully. Tracking number: {$newPackage["trackingNumber"]}";
-            $trackingNumber = $newPackage["trackingNumber"];
-        }
+    switch ($_REQUEST["action"]) {
+        case "create-shipment":
+            createShipment();
+            break;
+        case "get-label":
+            getLabel();
+            break;
+        default:
+            $_SESSION["flash"] = [
+                "error" => true,
+                "message" => "Invalid or not permitted action."
+            ];
+            break;
     }
 
-    if ($_REQUEST["action"] === "get-label") {
-        $packagePDF = $springCourier->packagePDF($_POST["trackingNumber"]);
+    header("location: /");
+    exit;
+}
 
-        if (!empty($packagePDF["error"])) {
-            $error = true;
-            $message = $packagePDF["message"];
-        } else {
-            $success = true;
-            $message = "Success! Download your label below.";
-            $labelImage = $packagePDF["labelImage"];
-            $trackingNumber = $packagePDF["trackingNumber"];
-        }
-    }
+function createShipment(): void
+{
+    $springCourier = new SpringCourier();
+
+    $order = [
+        "sender" => $_POST["sender"],
+        "recipient" => $_POST["recipient"]
+    ];
+    
+    $params = [
+        "apiKey" => $_POST["params"]["apikey"],
+        "labelFormat" => "PDF",
+        "service" => "PPTT",
+        "shipperReference" => $_POST["params"]["shipperReference"]
+    ];
+
+    $newPackage = $springCourier->newPackage($order, $params);
+
+    if (!empty($newPackage["error"])) {
+        $_SESSION["flash"] = [
+            "error" => true,
+            "message" => $newPackage["message"]
+        ];
+
+        return;
+    } 
+
+    $_SESSION["flash"] = [
+        "success" => true,
+        "message" => "New shipment created successfully. Tracking number: {$newPackage["trackingNumber"]}",
+        "trackingNumber" => $newPackage["trackingNumber"],
+    ];
+
+    return;
+}
+
+function getLabel(): void
+{
+    $springCourier = new SpringCourier();
+
+    $packagePDF = $springCourier->packagePDF($_POST["trackingNumber"]);
+
+    if (!empty($packagePDF["error"])) {
+        $_SESSION["flash"] = [
+            "error" => true,
+            "message" => $packagePDF["message"]
+        ];
+
+        return;
+    } 
+
+    $_SESSION["flash"] = [
+        "success" => true,
+        "message" => "Success! Download your label.",
+        "labelImage" => $packagePDF["labelImage"],
+        "trackingNumber" => $packagePDF["trackingNumber"],
+    ];
+
+    return;
 }
 ?>
 
@@ -187,7 +229,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_REQUEST["action"])) {
                 <form action="/?action=get-label" method="POST" class="mb-3">
                     <div class="mb-2">
                         <label for="tracking-number">Tracking Number <span class="required">*</span></label>
-                        <input type="text" id="tracking-name" name="trackingNumber" placeholder="Enter tracking number" value="<?= htmlspecialchars($trackingNumber) ?>" class="form-control form-control-sm" >
+                        <input type="text" id="tracking-number" name="trackingNumber" placeholder="Enter tracking number" value="<?= htmlspecialchars($trackingNumber) ?>" class="form-control form-control-sm" >
                     </div>
                     
                     <button type="submit" class="btn btn-primary">Download Label</button>
