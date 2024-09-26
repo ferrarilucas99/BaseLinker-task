@@ -10,6 +10,7 @@ The Shipment Manager project is a PHP-based application that allows users to cre
 2. [Features](#features)
 3. [Usage](#usage)
 4. [API Integration](#api-integration)
+5. [Code Structure](#code-structure)
 
 ## Installation
 ### Prerequisites
