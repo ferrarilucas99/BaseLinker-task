@@ -148,15 +148,4 @@ class SpringCourier
 
         return true;
     }
-
-    /**
-     * Temporary function to debug and die with <pre> element
-     */
-    public function dd(...$data)
-    {
-        echo "<pre>";
-        var_dump(...$data);
-        echo "</pre>";
-        die;
-    }
 }
