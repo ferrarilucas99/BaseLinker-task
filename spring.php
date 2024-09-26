@@ -78,7 +78,18 @@ class SpringCourier
             ];
         }
 
-        return $response;
+        if (empty($response["Shipment"]["LabelImage"])) {
+            return [
+                "error" => true,
+                "message" => "Missing label from response"
+            ];
+        }
+
+        return [
+            "success" => true,
+            "labelImage" => $response["Shipment"]["LabelImage"],
+            "trackingNumber" => $response["Shipment"]["TrackingNumber"] ?? ""
+        ];
     }
 
     /**

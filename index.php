@@ -7,58 +7,9 @@ $randomRef = "Ref_" . bin2hex(random_bytes(8/2));
 
 $success = false;
 $error = false;
-$message = null;
-
-// $springCourier->dd($_SERVER);
-
-// $order = [
-//     "sender" => [
-//         "Name" => "Jan Kowalski",
-//         "Company" => "BaseLinker",
-//         "AddressLine1" => "Kopernika 10",
-//         "City" => "Gdansk",
-//         "State" => "",
-//         "Zip" => "80208",
-//         "Country" => "PL",
-//         "Phone" => "666666666",
-//         "Email" => "jankowalski@test.com",
-//     ],
-//     "recipient" => [
-//         "Name" => "Maud Driant",
-//         "Company" => "Spring GDS",
-//         "AddressLine1" => "Strada Foisorului, Nr. 16, Bl. F11C, Sc. 1, Ap. 10",
-//         "City" => "Bucuresti, Sector 3",
-//         "State" => "",
-//         "Zip" => "031179",
-//         "Country" => "RO",
-//         "Phone" => "555555555",
-//         "Email" => "mauddriant@test.com",
-//     ]
-// ];
-
-// $params = [
-//     "apiKey" => "f16753b55cac6c6e",
-//     "labelFormat" => "PDF",
-//     "service" => "PPTT",
-//     "shipperReference" => $randomRef
-// ];
-
-// $newPackage = $springCourier->newPackage($order, $params);
-
-// if (isset($newPackage["error"]) && $newPackage["error"]) {
-//     echo $newPackage["message"];
-// } 
-
-// if (isset($newPackage["Shipment"]["TrackingNumber"]) && is_string($newPackage["Shipment"]["TrackingNumber"])) {
-//     $packagePDF = $springCourier->packagePDF($newPackage["Shipment"]["TrackingNumber"]);
-
-//     if (isset($packagePDF["error"]) && $packagePDF["error"]) {
-//         echo "Error: {$packagePDF["message"]}";
-//     } else {
-//         header("Content-type: application/pdf");
-//         echo base64_decode($packagePDF["Shipment"]["LabelImage"]);
-//     }
-// }
+$message = "";
+$trackingNumber = "";
+$labelImage = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_REQUEST["action"])) {
     if ($_REQUEST["action"] === "create-shipment") {
@@ -82,6 +33,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_REQUEST["action"])) {
         } else {
             $success = true;
             $message = "New shipment created successfully. Tracking number: {$newPackage["trackingNumber"]}";
+            $trackingNumber = $newPackage["trackingNumber"];
+        }
+    }
+
+    if ($_REQUEST["action"] === "get-label") {
+        $packagePDF = $springCourier->packagePDF($_POST["trackingNumber"]);
+
+        if (!empty($packagePDF["error"])) {
+            $error = true;
+            $message = $packagePDF["message"];
+        } else {
+            $success = true;
+            $message = "Success! Download your label below.";
+            $labelImage = $packagePDF["labelImage"];
+            $trackingNumber = $packagePDF["trackingNumber"];
         }
     }
 }
@@ -121,11 +87,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_REQUEST["action"])) {
 
         <form action="/?action=create-shipment" method="POST" class="mb-3">
             <div class="mb-2 d-flex row">
-                <div class="col-3 mb-2">
+                <div class="col-12 col-sm-6 col-md-3 mb-2">
                     <label for="apikey">API Key <span class="required">*</span></label>
                     <input type="text" name="params[apikey]" id="apikey" class="form-control form-control-sm" value="f16753b55cac6c6e">
                 </div>
-                <div class="col-3 mb-2">
+                <div class="col-12 col-sm-6 col-md-3 mb-2">
                     <label for="shipperReference">Shipper Reference <span class="required">*</span></label>
                     <input type="text" name="params[shipperReference]" id="shipperReference" class="form-control form-control-sm" value="<?= htmlspecialchars($randomRef) ?>">
                 </div>
@@ -213,9 +179,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_REQUEST["action"])) {
                 </div>
             </div>
     
-            <button type="submit" class="btn btn-primary w-fit" name="create-shipment">Create Shipment</button>
+            <button type="submit" class="btn btn-primary">Create Shipment</button>
         </form>
     
+        <div class="d-flex row">
+            <div class="col-12 col-md-4">
+                <form action="/?action=get-label" method="POST" class="mb-3">
+                    <div class="mb-2">
+                        <label for="tracking-number">Tracking Number <span class="required">*</span></label>
+                        <input type="text" id="tracking-name" name="trackingNumber" placeholder="Enter tracking number" value="<?= htmlspecialchars($trackingNumber) ?>" class="form-control form-control-sm" >
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Download Label</button>
+                </form>
+        
+                <small class="mb-3">Fields with <span class="required">*</span> are required</small>
+            </div>
+        
+            <div class="col-12 col-md-8">
+                <?php if ($labelImage): ?>
+                    <iframe 
+                        src="data:application/pdf;base64,<?= $labelImage ?>" 
+                        width="100%" 
+                        height="650"
+                    >
+                    </iframe>
+                <?php endif; ?>
+            </div>
+        </div>
     </main>
 </body>
 </html>
